@@ -33,7 +33,7 @@ def save_res(res, model_name, save_path):
         #save_res_[i].append(str(model_name))
         save_res_[i].append(str(i))
     for i in save_res_:
-        for summary_label_i in ["label", "tp", "fp", "fn", "precision", "recall", "AP"]:
+        for summary_label_i in ["label", "total", "tp", "fp", "fn", "precision", "recall", "AP"]:
             save_res_[i].append(str(res[summary_label_i][i]))
         for summary_label_i in ["accuracy", "test_speed", "load_speed", "file_size"]:
             save_res_[i].append(str(res[summary_label_i]))
@@ -52,14 +52,20 @@ def get_FileSize(filePath):
 
     return round(fsize,2)
 
+def save_img(img_path, out_root, out_type, label):
+    out_path = os.path.join(out_root, "{}".format(out_type), "{}".format(label))
+    if not os.path.exists(out_path):
+        os.makedirs(out_path)
+    shutil.copy(img_path, out_path)
+
 def all_summary():
     opt = Get_opt()
-    task_root = "/home/zkyang/Workspace/task/chebiao_model_test/30_label"
+    task_root = "/home/zkyang/Workspace/task/chebiao_model_test/honghuang/densenet_v2.3_60_v2"
     opt.data_root = os.path.join(task_root, "Data")
     opt.test_list_file = os.path.join(task_root, "test.txt")
 
-    object_task = "densenet_v2.2"
-    model_name = "densenet_v2.2_0323_iter_200000_newbg.caffemodel"
+    object_task = "densenet_v2.3_60_v2"
+    model_name = "densenet_v2.3_v2_0330_iter_252000.caffemodel"
     # opt.GPU = True
     opt.GPU = False
     opt.ifgray = False
@@ -69,9 +75,9 @@ def all_summary():
     else:
         opt.img_size = 112
     # 分数阈值
-    opt.score_th = 0.0
+    opt.score_th = 0.7
 
-    out_task_root = os.path.join(task_root, "out/{}_newbg".format(object_task))
+    out_task_root = os.path.join(task_root, "out/{}".format(object_task))
     if not os.path.exists(out_task_root):
         os.makedirs(out_task_root)
 
@@ -83,7 +89,7 @@ def all_summary():
     # 使用的模型导入
     test = test_.test_net(opt)
 
-    summary_label = ["ID", "Label", "TP", "FP", "FN", "Precision", "Recall", "AP", "Accuracy", "test_speed",
+    summary_label = ["ID", "Label", "Total", "TP", "FP", "FN", "Precision", "Recall", "AP", "Accuracy", "test_speed",
                      "load_speed", "file_size"]
     save_file_path = os.path.join(out_task_root, "summary_CPU_{}_{}.txt".format(object_task, opt.score_th))
     save_file = open(save_file_path, "w+")
@@ -151,11 +157,16 @@ def all_summary():
         all_pred.append(pred)
         # print (score)
         all_score.append(score)
-        if_true = True if (pred == true_label) else False
-        out_path = os.path.join(out_root, "{}".format(if_true), "{}".format(test.index_label[true_label]))
-        if not os.path.exists(out_path):
-            os.makedirs(out_path)
-        shutil.copy(img_path,out_path)
+        if score < opt.score_th:
+            save_pred = 0
+        else:
+            save_pred = pred
+        if (save_pred == true_label):
+            save_img(img_path, out_root, "正检", new_index_label[save_pred])
+        else:
+            save_img(img_path, out_root, "漏检", new_index_label[true_label])
+            save_img(img_path, out_root, "误检", new_index_label[save_pred])
+
         if i%100 == 0:
             print ("完成度： {}/{}".format(i,len(img_list)))
 
@@ -164,6 +175,7 @@ def all_summary():
     summary = summary_.result_summary(np.array(all_pred), np.array(all_true), np.array(all_score), score_th=score_th)
     # res[opt.model_name]["label"] = test.index_label
     res[opt.model_name]["label"] = new_index_label
+    res[opt.model_name]["total"] = summary.Get_Total()
     res[opt.model_name]["tp"] = summary.Get_TP()
     res[opt.model_name]["fp"] = summary.Get_FP()
     res[opt.model_name]["fn"] = summary.Get_FN()

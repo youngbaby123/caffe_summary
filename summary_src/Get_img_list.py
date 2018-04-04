@@ -161,9 +161,9 @@ def Get_data_list(args, bg_list=[]):
 
 def main():
     args = parse_args()
-    args.data_root = "/home/zkyang/Workspace/task/chebiao_model_train/30_0328/Data"
-    args.save_root = "/home/zkyang/Workspace/task/chebiao_model_train/60/test"
-    args.max_num = 10
+    args.data_root = "/home/zkyang/Workspace/task/chebiao_model_test/honghuang/densenet_v2.3_60_v2/Data"
+    args.save_root = "/home/zkyang/Workspace/task/chebiao_model_test/honghuang/densenet_v2.3_60_v2"
+    args.max_num = 2000
     args.bg_num = 6000
 
     bg_list = ["0", "background", "fake_background", "Negative", "negative"]
@@ -171,7 +171,7 @@ def main():
     args.if_has_bg = True
 
     args.data_type = "test"
-    args.label_file = "/home/zkyang/Workspace/task/chebiao_model_train/30_0328/label.txt"
+    args.label_file = "/home/zkyang/Workspace/task/chebiao_model_test/honghuang/densenet_v2.3_60_v2/label_all.txt"
 
 
     print ("Start get data list.")

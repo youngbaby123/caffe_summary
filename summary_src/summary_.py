@@ -36,6 +36,13 @@ class result_summary():
     def Get_Confusion_matrix(self):
         return confusion_matrix(self.true, self.pred, self.labels)
 
+    def Get_Total(self):
+        Total_list = np.sum(self.confusion_mat, 1)
+        Total_dict = {}
+        for index_i, label_i in enumerate(self.labels):
+            Total_dict[label_i] = Total_list[index_i]
+        return Total_dict
+
     def Get_TP(self):
         tp_list = np.diag(self.confusion_mat)
         tp_dict = {}
